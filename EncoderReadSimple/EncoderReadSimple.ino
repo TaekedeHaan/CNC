@@ -27,6 +27,8 @@
      } else {
        encoder0Pos++;
      }
+
+     //Only print once every 1 00 ticks, to prevent delay's
      if ((encoder0Pos % 100) == 0){
       Serial.println (encoder0Pos);
      } 
