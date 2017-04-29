@@ -43,20 +43,20 @@ void doEncoderA(){
   if (digitalRead(encoderPinA) == HIGH) {   // found a low-to-high on channel A
     if (digitalRead(encoderPinB) == LOW) {  // check channel B to see which way
                                              // encoder is turning
-      encoderPosNow --;         // CCW
+      encoderPosNow--;         // CCW
     }
     else {
-      encoderPosNow ++;         // CW
+      encoderPosNow++;         // CW
     }
   }
   else                                        // found a high-to-low on channel A
   {
     if (digitalRead(encoderPinB) == LOW) {   // check channel B to see which way
                                               // encoder is turning
-      encoderPosNow ++;          // CW
+      encoderPosNow++;          // CW
     }
     else {
-      encoderPosNow --;          // CCW
+      encoderPosNow--;          // CCW
     }
   }
 }
@@ -65,20 +65,20 @@ void doEncoderB(){
   if (digitalRead(encoderPinB) == HIGH) {   // found a low-to-high on channel A
     if (digitalRead(encoderPinA) == LOW) {  // check channel B to see which way
                                              // encoder is turning
-      encoderPosNow --;         // CCW
+      encoderPosNow++;         // CCW
     }
     else {
-      encoderPosNow ++;         // CW
+      encoderPosNow--;         // CW
     }
   }
   else                                        // found a high-to-low on channel A
   {
     if (digitalRead(encoderPinA) == LOW) {   // check channel B to see which way
                                               // encoder is turning
-      encoderPosNow ++;          // CW
+      encoderPosNow--;          // CW
     }
     else {
-      encoderPosNow --;          // CCW
+      encoderPosNow++;          // CCW
     }
   }
 }
