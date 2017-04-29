@@ -15,8 +15,7 @@ volatile unsigned int encoderPosNow = 0;
 unsigned int encoderPosPrev = 0;
 
 int input;
-int encoderA;
-int encoderB;
+int encoderAB;
 
 void setup() {
   pinMode(encoderPinA, INPUT_PULLUP);
@@ -38,58 +37,40 @@ void loop(){
 
 void doEncoderA(){
   
-  input = PIND;
-  encoderA = input & B00000100;
-  encoderA = encoderA >> 2;
-  encoderB = input & B00001000;
-  encoderB = encoderB >> 3;
-  
-  if (encoderA) {   // found a low-to-high on channel A
-    if (encoderB) {  // check channel B to see which way
-                                             // encoder is turning
-      encoderPosNow++;         // CCW
-    }
-    else {
-      encoderPosNow--;         // CW
-    }
-  }
-  else                                        // found a high-to-low on channel A
-  {
-    if (encoderB) {   // check channel B to see which way
-                                              // encoder is turning
-      encoderPosNow--;          // CW
-    }
-    else {
-      encoderPosNow++;          // CCW
-    }
+  input = PIND;                   //Read out the D register
+  encoderAB = input & B00001100;  //We are only interested in Pin2 and Pin3
+  encoderAB = encoderAB >> 2;     //Bitshift by two to remove pin1 and pin3
+
+  switch(encoderAB){
+    case B11: encoderPosNow++;
+    break;
+    case B10: encoderPosNow--; 
+    break;
+    case B01: encoderPosNow--;
+    break;
+    case B00: encoderPosNow++;
+    break;
+    default: Serial.println("Enocder read error, how could you even fuck this up?");
+    break;
   }
 }
 
 void doEncoderB(){
   
-  input = PIND;
-  encoderA = input & B00000100;
-  encoderA = encoderA >> 2;
-  encoderB = input & B00001000;
-  encoderB = encoderB >> 3;
-  
-  if (encoderB) {   // found a low-to-high on channel A
-    if (encoderA) {  // check channel B to see which way
-                                             // encoder is turning
-      encoderPosNow--;         // CCW
-    }
-    else {
-      encoderPosNow++;         // CW
-    }
-  }
-  else                                        // found a high-to-low on channel A
-  {
-    if (encoderA) {   // check channel B to see which way
-                                              // encoder is turning
-      encoderPosNow++;          // CW
-    }
-    else {
-      encoderPosNow--;          // CCW
-    }
+  input = PIND;                   //Read out the D register
+  encoderAB = input & B00001100;  //We are only interested in Pin2 and Pin3
+  encoderAB = encoderAB >> 2;     //Bitshift by two to remove pin1 and pin3
+
+  switch(encoderAB) {
+    case B11: encoderPosNow--;
+    break;
+    case B10: encoderPosNow++; 
+    break;
+    case B01: encoderPosNow++; 
+    break;
+    case B00: encoderPosNow--;
+    break;
+    default: Serial.println("Enocder read error, how could you even fuck this up?");
+    break;
   }
 }
