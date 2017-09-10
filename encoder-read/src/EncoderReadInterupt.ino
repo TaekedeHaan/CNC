@@ -7,7 +7,6 @@
    turning on the pull-ups saves having to hook up resistors
    to the A & B channel outputs
 */
-
 #include "Arduino.h"
 
 #define encoderPinA  2 //Red A-phase
