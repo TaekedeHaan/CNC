@@ -18,11 +18,13 @@ int LPWM_Output = 10; // Arduino PWM output pin 6; connect to IBT-2 pin 2 (LPWM)
 int rightPWM;
 int leftPWM;
 
-int encoderPosPrev = 0;
-volatile int encoderPosNow = 0;
+long encoderPosPrev = 0;
+volatile long encoderPosNow = 0;
 
-int encoderPositionMinimum;
-int encoderPositionMaximum;
+long encoderPositionMinimum;
+long encoderPositionMaximum;
+
+int powerCalibration = 12;
 
 unsigned int actualSameEncoderRead;
 unsigned int requiredSameEncoderRead = 100;
@@ -43,16 +45,23 @@ void setup() {
 
   Serial.begin (9600);
   Serial.println("start");                // a personal quirk
-  find_position_minimum();
-  find_position_maximum();
+  
+  encoderPositionMinimum = find_position_minimum();
+  encoderPositionMaximum = find_position_maximum();
+  
+  Serial.print("Minimum:");
+  Serial.println(encoderPositionMinimum);
+
+  Serial.print("Maximum:");
+  Serial.println(encoderPositionMaximum);
 }
 
 void loop()
 {
-  //if (encoderPosNow != encoderPosPrev){
-  //  encoderPosPrev = encoderPosNow;
-  //  Serial.println (encoderPosNow);
-  //}
+
+
+
+
   // sensor value is in the range 0 to 1023
   // the lower half of it we use for reverse rotation; the upper half for forward rotation
   /*
@@ -75,56 +84,45 @@ void loop()
 }
 
 
-void find_position_minimum(){
-  analogWrite(LPWM_Output, 0);
-  analogWrite(RPWM_Output, 11);
+int find_position_minimum(){
   Serial.println ("Searching for minimum");
+  return find_position(0, powerCalibration);
+}
+
+int find_position_maximum(){
+  Serial.println ("Searching for maximun");
+  return find_position(powerCalibration, 0);
+}    
+
+
+int find_position(int analogWriteRight, int analogWriteLeft){
+  analogWrite(LPWM_Output, analogWriteLeft);
+  analogWrite(RPWM_Output, analogWriteRight);
+  delay(1000);
   actualSameEncoderRead = 0;
-  while (true)
-  {
-    if (abs(encoderPosNow - encoderPosPrev) <= 2)
-    {
-      actualSameEncoderRead = actualSameEncoderRead + 1;
-      Serial.println (actualSameEncoderRead);
+  
+  while (true){
+    if (abs(encoderPosNow - encoderPosPrev) < 2) {
+      //If the same value as previous has been read.
+      actualSameEncoderRead ++;
+      //Serial.println(actualSameEncoderRead);
     }
-    else
-    {
+    else{
+      encoderPosPrev = encoderPosNow;
       actualSameEncoderRead = 0;
     }
-    if (actualSameEncoderRead > requiredSameEncoderRead)
-    {
-      encoderPositionMinimum = encoderPosNow;
-      Serial.println (encoderPositionMinimum);
-      analogWrite(LPWM_Output, 0);
-      analogWrite(RPWM_Output, 0);
-      break;
+    if (actualSameEncoderRead > requiredSameEncoderRead){
+      motor_reset();
+      Serial.print("Found a value: ");
+      Serial.println(encoderPosNow);
+      return encoderPosNow;
     }
   }     
 }
 
-void find_position_maximum(){
-  analogWrite(LPWM_Output, 11);
+void motor_reset(){
+  Serial.println ("Resetting motor");
+  analogWrite(LPWM_Output, 0);
   analogWrite(RPWM_Output, 0);
-  Serial.println ("Searching for maximum");
-  actualSameEncoderRead = 0;
-  while (true)
-  {
-    if (encoderPosNow == encoderPosPrev)
-    {
-      actualSameEncoderRead = actualSameEncoderRead + 1;
-      Serial.println (actualSameEncoderRead);
-    }
-    else
-    {
-      actualSameEncoderRead = 0;
-    }
-      if (actualSameEncoderRead > requiredSameEncoderRead)
-      {
-      encoderPositionMaximum = encoderPosNow;
-      Serial.println (encoderPositionMaximum);
-      analogWrite(LPWM_Output, 0);
-      analogWrite(RPWM_Output, 0);
-      break;
-    }
-  }
-}    
+}
+

@@ -8,13 +8,12 @@
    to the A & B channel outputs
 */
 #include "Arduino.h"
-#include "../lib/IncrementalEncoder.ino"
 
 #define encoderPinA  2 //Red A-phase
 #define encoderPinB  3 //Green B-pase
 
-
-unsigned int encoderPosPrev = 0;
+volatile long encoderPosNow = 0;
+long encoderPosPrev = 0;
 
 void setup() {
   pinMode(encoderPinA, INPUT_PULLUP);
