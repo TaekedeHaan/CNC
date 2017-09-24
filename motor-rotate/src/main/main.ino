@@ -59,10 +59,12 @@ void setup() {
   int lengthAxis = abs(encoderPositionMaximum - encoderPositionMinimum) / resolutionEncoder * leadSpindle;
 
   Serial.print("Difference in ticks is: ");
-  Serial.println(abs(encoderPositionMaximum - encoderPositionMinimum));
+  Serial.print(abs(encoderPositionMaximum - encoderPositionMinimum));
+  Serial.println("[ticks]");
   
   Serial.print("Lengtht of axis is: ");
-  Serial.println(lengthAxis);
+  Serial.print(lengthAxis);
+  Serial.println("[mm]");
 }
 
 void loop()
@@ -124,9 +126,9 @@ long find_position(int analogWriteRight, int analogWriteLeft){
       actualSameEncoderRead = 0;
     }
     if (actualSameEncoderRead > requiredSameEncoderRead){
-      motor_reset();
       Serial.print("Found a value: ");
       Serial.println(encoderPosNow);
+      motor_reset();
       return encoderPosNow;
     }
   }     
