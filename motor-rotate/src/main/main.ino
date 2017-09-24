@@ -24,12 +24,13 @@ volatile long encoderPosNow = 0;
 long encoderPositionMinimum;
 long encoderPositionMaximum;
 
-int powerCalibration = 12;
+int powerCalibration = 15; //[max = 256]
 
 unsigned int actualSameEncoderRead;
-unsigned int requiredSameEncoderRead = 100;
+unsigned int requiredSameEncoderRead = 120; 
 
-unsigned int maximumValue = 2147483648;
+#define resolutionEncoder 2400 //[ticks per rotation]
+#define leadSpindle 2 //[mm/rotation]
 
 void setup() {
 
@@ -54,6 +55,14 @@ void setup() {
 
   Serial.print("Maximum:");
   Serial.println(encoderPositionMaximum);
+
+  int lengthAxis = abs(encoderPositionMaximum - encoderPositionMinimum) / resolutionEncoder * leadSpindle;
+
+  Serial.print("Difference in ticks is: ");
+  Serial.println(abs(encoderPositionMaximum - encoderPositionMinimum));
+  
+  Serial.print("Lengtht of axis is: ");
+  Serial.println(lengthAxis);
 }
 
 void loop()
@@ -84,21 +93,24 @@ void loop()
 }
 
 
-int find_position_minimum(){
+long find_position_minimum(){
   Serial.println ("Searching for minimum");
   return find_position(0, powerCalibration);
 }
 
-int find_position_maximum(){
+long find_position_maximum(){
   Serial.println ("Searching for maximun");
   return find_position(powerCalibration, 0);
 }    
 
 
-int find_position(int analogWriteRight, int analogWriteLeft){
+long find_position(int analogWriteRight, int analogWriteLeft){
+  analogWrite(LPWM_Output, 2 * analogWriteLeft);
+  analogWrite(RPWM_Output, 2 * analogWriteRight);
+  delay(100);
+
   analogWrite(LPWM_Output, analogWriteLeft);
   analogWrite(RPWM_Output, analogWriteRight);
-  delay(1000);
   actualSameEncoderRead = 0;
   
   while (true){
