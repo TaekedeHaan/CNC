@@ -8,13 +8,13 @@ void readEncoderA(){
   encoderAB = encoderAB >> 2;     //Bitshift by two to remove pin1 and pin3
 
   switch(encoderAB){
-    case B11: encoderPosNow++;
+    case B11: encoderTickNow++;
     break;
-    case B10: encoderPosNow--;
+    case B10: encoderTickNow--;
     break;
-    case B01: encoderPosNow--;
+    case B01: encoderTickNow--;
     break;
-    case B00: encoderPosNow++;
+    case B00: encoderTickNow++;
     break;
     default: Serial.println("Enocder read error, how could you even fuck this up?");
     break;
@@ -28,13 +28,13 @@ void readEncoderB(){
   encoderAB = encoderAB >> 2;     //Bitshift by two to remove pin1 and pin3
 
   switch(encoderAB) {
-    case B11: encoderPosNow--;
+    case B11: encoderTickNow--;
     break;
-    case B10: encoderPosNow++;
+    case B10: encoderTickNow++;
     break;
-    case B01: encoderPosNow++;
+    case B01: encoderTickNow++;
     break;
-    case B00: encoderPosNow--;
+    case B00: encoderTickNow--;
     break;
     default: Serial.println("Enocder read error, how could you even fuck this up?");
     break;

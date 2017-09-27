@@ -19,18 +19,22 @@ int rightPWM;
 int leftPWM;
 
 long encoderPosPrev = 0;
-volatile long encoderPosNow = 0;
+volatile long encoderTickNow = 0;
 
-long encoderPositionMinimum;
-long encoderPositionMaximum;
+long encoderTickMinimum;
+long encoderTickMaximum;
 
-int powerCalibration = 15; //[max = 256]
+int encoderPolarity;
+long pos;
+
+int powerCalibration = 20; //[max = 256]
 
 unsigned int actualSameEncoderRead;
 unsigned int requiredSameEncoderRead = 120; 
 
-#define resolutionEncoder 2400 //[ticks per rotation]
-#define leadSpindle 2 //[mm/rotation]
+const int resolutionEncoder = 2400; //[ticks per rotation]
+const float leadSpindle = 0.002; //[mm/rotation]
+const long factor = 10000000; //[um/m]
 
 void setup() {
 
@@ -46,52 +50,38 @@ void setup() {
 
   Serial.begin (9600);
   Serial.println("start");                // a personal quirk
-  
-  encoderPositionMinimum = find_position_minimum();
-  encoderPositionMaximum = find_position_maximum();
+
+  encoderTickMinimum = find_position_minimum();
+  encoderTickMaximum = find_position_maximum();
   
   Serial.print("Minimum:");
-  Serial.println(encoderPositionMinimum);
+  Serial.println(encoderTickMinimum);
 
   Serial.print("Maximum:");
-  Serial.println(encoderPositionMaximum);
+  Serial.println(encoderTickMaximum);
 
-  int lengthAxis = abs(encoderPositionMaximum - encoderPositionMinimum) / resolutionEncoder * leadSpindle;
+  encoderPolarity = get_encoder_polarity()
+
+  float lengthAxis = ((float)encoderPolarity * ((float)encoderTickMaximum - (float)encoderTickMinimum)) / (float)resolutionEncoder * (float)leadSpindle;
 
   Serial.print("Difference in ticks is: ");
-  Serial.print(abs(encoderPositionMaximum - encoderPositionMinimum));
+  Serial.print(abs(encoderTickMaximum - encoderTickMinimum));
   Serial.println("[ticks]");
   
   Serial.print("Lengtht of axis is: ");
   Serial.print(lengthAxis);
-  Serial.println("[mm]");
+  Serial.println("[m]");
 }
 
 void loop()
 {
-
-
-
-
-  // sensor value is in the range 0 to 1023
-  // the lower half of it we use for reverse rotation; the upper half for forward rotation
-  /*
-  if (encoderPosNow < 0)
-  {
-    // reverse rotation
-    rightPWM = map(encoderPosNow, 0, 60000, 0, 255);
-    analogWrite(LPWM_Output, 0);
-    analogWrite(RPWM_Output, rightPWM);
-  }
-  else
-  {
-    // forward rotation
-    leftPWM = map(encoderPosNow, -60000, 0, 255, 0);
-
-    analogWrite(LPWM_Output, leftPWM);
-    analogWrite(RPWM_Output, 0);
-  }
-  */
+ pos = get_current_position;
+ Serial.print("Position is: ");
+ Serial.print(pos);
+ Serial.println("[um]");
+ Serial.print("Encoder tick is: ");
+ Serial.print(encoderTickNow - encoderTickMinimum);
+ Serial.println("[-]");
 }
 
 
@@ -116,20 +106,20 @@ long find_position(int analogWriteRight, int analogWriteLeft){
   actualSameEncoderRead = 0;
   
   while (true){
-    if (abs(encoderPosNow - encoderPosPrev) < 2) {
+    if (abs(encoderTickNow - encoderPosPrev) < 2) {
       //If the same value as previous has been read.
       actualSameEncoderRead ++;
       //Serial.println(actualSameEncoderRead);
     }
     else{
-      encoderPosPrev = encoderPosNow;
+      encoderPosPrev = encoderTickNow;
       actualSameEncoderRead = 0;
     }
     if (actualSameEncoderRead > requiredSameEncoderRead){
       Serial.print("Found a value: ");
-      Serial.println(encoderPosNow);
+      Serial.println(encoderTickNow);
       motor_reset();
-      return encoderPosNow;
+      return encoderTickNow;
     }
   }     
 }
@@ -138,5 +128,21 @@ void motor_reset(){
   Serial.println ("Resetting motor");
   analogWrite(LPWM_Output, 0);
   analogWrite(RPWM_Output, 0);
+}
+
+int get_encoder_polarity(){
+  if (encoderTickMaximum > encoderTickMinimum){
+    return 1;
+  }
+  else{
+    return -1; 
+  }
+}
+
+long get_current_position(){
+  int positionTickNow = encoderPolarity * (encoderTickNow - encoderTickMinimum);
+  float positionTurnsNow = (float)positionTickNow / (float)resolutionEncoder;
+  float positionMetersNow = positionTurnsNow * leadSpindle;
+  return (long)(positionMetersNow * factor);
 }
 
